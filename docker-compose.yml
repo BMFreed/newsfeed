@@ -1,0 +1,31 @@
+name: newsfeed
+services:
+  newsfeed:
+    build:
+      context: .
+      dockerfile_inline: |
+        FROM node:22-alpine
+
+        WORKDIR /opt/frontend
+
+        COPY package.json .
+        COPY tsconfig.json .
+        COPY pnpm-lock.yaml .
+        COPY tsconfig.json .
+        
+        RUN corepack enable pnpm \
+        && corepack prepare pnpm@10.0 --activate \
+        && pnpm config set strict-ssl false --global \
+        && pnpm install
+
+        EXPOSE 3000
+        CMD ["pnpm", "run", "dev"]
+    restart: always
+    ports:
+      # owner:container
+      - "3000:3000"
+    volumes:
+      - ${FRONTEND_PATH:-./src}:/opt/frontend/src
+      - ${FRONTEND_PATH:-./nuxt.config.ts}:/opt/frontend/vite.config.ts
+    extra_hosts:
+      - "localhost:host-gateway"
